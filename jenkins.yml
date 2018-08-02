@@ -1,0 +1,53 @@
+version: '3.1'
+
+volumes:
+  jenkinsdata:
+  jenkinsconf:
+  jenkinsjobs:
+
+networks:
+  nw001:
+
+services:
+  jenkinsdata:
+    build: jenkins-data
+    image: michaellihs/jenkinsdata
+
+  jenkinsconf:
+    build: jenkins-conf
+    image: michaellihs/jenkinsconf
+
+  jenkinsjobs:
+    build: jenkins-jobs
+    image: michaellihs/jenkinsjobs
+
+  jenkinsmaster:
+    build: jenkins-master
+    image: michaellihs/jenkins
+    ports:
+      - 50000:50000
+    secrets:
+      - jenkins-user
+      - jenkins-pass
+    volumes:
+      - jenkinsdata:/var/log/jenkins
+      - jenkinsconf:/var/jenkins_home
+      - jenkinsjobs:/var/jenkins_jobs
+    networks:
+      nw001:
+        aliases:
+          - jenkins-master
+
+  jenkinsnginx:
+    build: jenkins-nginx
+    image: michaellihs/jenkinsnginx
+    ports:
+      - 8081:8081
+    networks:
+      - nw001
+
+secrets:
+  jenkins-user:
+    external: true
+  jenkins-pass:
+    external: true
